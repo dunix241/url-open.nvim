@@ -128,6 +128,7 @@ require("url-open").setup({
         -- 	  pattern = '["]([^%s]*)["]:%s*"[^"]*%d[%d%.]*"',
         -- 	  prefix = "https://www.npmjs.com/package/",
         -- 	  suffix = "",
+        -- 	  app = "", -- use a custom app instead of the default app
         -- 	  file_patterns = { "package%.json" },
         -- 	  excluded_file_patterns = nil,
         -- 	  extra_condition = function(pattern_found)
@@ -141,6 +142,7 @@ require("url-open").setup({
         -- 	  pattern = '["]([^%s]*)["]:%s*"[^"]*%d[%d%.]*"',
         -- 	  prefix = "https://www.npmjs.com/package/",
         -- 	  suffix = "/issues",
+        -- 	  app = "", -- use a custom app instead of the default app
         -- 	  file_patterns = { "package%.json" },
         -- 	  excluded_file_patterns = nil,
         -- 	  extra_condition = function(pattern_found)

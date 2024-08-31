@@ -45,7 +45,7 @@ end
 M.find_first_matching_url = function(text, patterns, start_pos, found_url_smaller_pos)
 	start_pos = start_pos or 1
 	found_url_smaller_pos = found_url_smaller_pos or #text
-	local start_found, end_found, url_found = nil, nil, nil
+	local start_found, end_found, url_found, app = nil, nil, nil, nil
 
 	for _, cond in ipairs(patterns) do
 		if
@@ -61,31 +61,33 @@ M.find_first_matching_url = function(text, patterns, start_pos, found_url_smalle
 				found_url_smaller_pos = start_pos_result
 				url_found = (cond.prefix or "") .. url .. (cond.suffix or "")
 				start_found, end_found = start_pos_result, end_pos_result
+				app = cond.app
 			end
 		end
 	end
 
-	return start_found, end_found, url_found
+	return start_found, end_found, url_found, app
 end
 
 --- Find the first url in the line
 --- @tparam table user_opts : User options
 --- @tparam string text : Text to search for urls
 --- @tparam number start_pos : Start position to search from (optional) (default: 1)
---- @treturn number start_pos, number end_pos, string url: Start position, end position, and url of the first url found (all nil if not found)
+--- @treturn number start_pos, number end_pos, string url, string app: Start position, end position, url of the first url found (all nil if not found), and the app to handle the url
 --- @see url-open.modules.patterns
 --- @see url-open.modules.options
 --- @see url-open.modules.handlers.find_first_matching_url
 M.find_first_url_in_line = function(user_opts, text, start_pos)
 	-- check default patterns first
-	local start_found, end_found, url_found =
+	local start_found, end_found, url_found, app =
 		M.find_first_matching_url(text, patterns_module.PATTERNS, start_pos)
 
-	local extra_start_found, extra_end_found, extra_url_found =
+	local extra_start_found, extra_end_found, extra_url_found, extra_app =
 		M.find_first_matching_url(text, user_opts.extra_patterns, start_pos, start_found)
 
 	if extra_start_found then
-		start_found, end_found, url_found = extra_start_found, extra_end_found, extra_url_found
+		start_found, end_found, url_found, app =
+			extra_start_found, extra_end_found, extra_url_found, extra_app
 	end
 
 	-- fallback to deep pattern
@@ -98,7 +100,7 @@ M.find_first_url_in_line = function(user_opts, text, start_pos)
 		end
 	end
 
-	return start_found, end_found, url_found
+	return start_found, end_found, url_found, app
 end
 
 --- Open the url with the specified app
@@ -133,10 +135,11 @@ local is_wsl = uv.os_uname().release:lower():find("microsoft") and true or false
 --- Open the url relying on the operating system
 --- @tparam table user_opts : User options
 --- @tparam string url : The url to open
+--- @tparam string app : The app to handle the url
 --- @see url-open.modules.handlers.open_url_with_app
-M.system_open_url = function(user_opts, url)
+M.system_open_url = function(user_opts, url, open_app)
 	if url then
-		local open_app = user_opts.open_app
+		open_app = open_app or user_opts.open_app or ""
 		if open_app == "default" or open_app == "" then
 			if vim.loop.os_uname().sysname == "Windows" or is_wsl then
 				M.open_url_with_app({ "cmd.exe /C start" }, url)
@@ -161,11 +164,11 @@ end
 --- @tparam function callback : The callback function to call for each url
 --- @see url-open.modules.handlers.find_first_url_in_line
 M.foreach_url_in_line = function(user_opts, line, callback)
-	local start_found, end_found, url = M.find_first_url_in_line(user_opts, line)
+	local start_found, end_found, url, app = M.find_first_url_in_line(user_opts, line)
 
 	while url do
-		if callback(url, start_found, end_found) then return end
-		start_found, end_found, url = M.find_first_url_in_line(user_opts, line, end_found + 1)
+		if callback(url, start_found, end_found, app) then return end
+		start_found, end_found, url, app = M.find_first_url_in_line(user_opts, line, end_found + 1)
 	end
 end
 
@@ -179,22 +182,24 @@ M.open_url = function(user_opts)
 	local cursor_pos = api.nvim_win_get_cursor(0)
 	local cursor_col = cursor_pos[2]
 	local line = api.nvim_get_current_line()
-	local url_to_open = nil
+	local url_to_open, app_to_open = nil, nil
 
 	-- get the first url in the line
-	M.foreach_url_in_line(user_opts, line, function(url, start_found, end_found)
+	M.foreach_url_in_line(user_opts, line, function(url, start_found, end_found, app)
 		if user_opts.open_only_when_cursor_on_url then
 			if cursor_col >= start_found - 1 and cursor_col < end_found then
 				url_to_open = url
+				app_to_open = app
 				return true -- no need to continue the loop
 			end
 		else
 			url_to_open = url
+			app_to_open = app
 			return cursor_col < end_found -- if cursor is on the url, no need to continue the loop
 		end
 	end)
 
-	M.system_open_url(user_opts, url_to_open)
+	M.system_open_url(user_opts, url_to_open, app_to_open)
 end
 
 return M

@@ -18,6 +18,7 @@ local validate = vim.validate
 --- @tfield string highlight_url.cursor_move.fg : Highlight foreground color
 --- @tfield string highlight_url.cursor_move.bg : Highlight background color
 --- @tfield boolean highlight_url.cursor_move.underline : enable underline
+--- @tfield boolean disable_default_patterns : Disable the default patterns
 --- @tfield boolean deep_pattern : Enable deep pattern
 --- @tfield table extra_patterns : A list of extra patterns to open url
 M.DEFAULT_OPTIONS = {
@@ -39,6 +40,7 @@ M.DEFAULT_OPTIONS = {
 			underline = true,
 		},
 	},
+	disable_default_patterns = false,
 	deep_pattern = false,
 	extra_patterns = {
 		-- [pattern] = prefix: string only or nil
