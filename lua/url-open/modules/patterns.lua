@@ -25,6 +25,7 @@ M.DEEP_PATTERN =
 --- @tfield string pattern : Pattern to match urls (required)
 --- @tfield string|nil prefix : Prefix to add to the url
 --- @tfield string|nil suffix : Suffix to add to the url
+--- @tfield string|nil app : App to handle the url
 --- @tfield table|string|nil file_patterns : File patterns to match against
 --- @tfield table|string|nil excluded_file_patterns : File patterns to exclude
 --- @tfield function(pattern_found)|boolean|nil extra_condition : A callback function will be called with the pattern found as argument. If the function returns false, the pattern will be ignored. If the function returns true, the pattern will be used.
@@ -33,6 +34,7 @@ M.PATTERNS = {
 		pattern = "(https?://[%w-_%.]+%.%w[%w-_%.%%%?%.:/+=&%%[%]#]*)",
 		prefix = "",
 		suffix = "",
+		app = nil,
 		file_patterns = nil,
 		excluded_file_patterns = nil,
 		extra_condition = nil,
@@ -41,6 +43,7 @@ M.PATTERNS = {
 		pattern = '["]([^%s]*)["]:%s*"[^"]*%d[%d%.]*"',
 		prefix = "https://www.npmjs.com/package/",
 		suffix = "",
+		app = nil,
 		file_patterns = { "package%.json" },
 		excluded_file_patterns = nil,
 		extra_condition = function(pattern_found)
@@ -51,6 +54,7 @@ M.PATTERNS = {
 		pattern = "[\"']([^%s~/]+/[^%s~/]+)[\"']",
 		prefix = "https://github.com/",
 		suffix = "",
+		app = nil,
 		file_patterns = nil,
 		excluded_file_patterns = { "package%.json", "package%-lock%.json" },
 		extra_condition = nil,
@@ -59,6 +63,7 @@ M.PATTERNS = {
 		pattern = 'brew ["]([^%s]*)["]',
 		prefix = "https://formulae.brew.sh/formula/",
 		suffix = "",
+		app = nil,
 		file_patterns = nil,
 		excluded_file_patterns = nil,
 		extra_condition = nil,
@@ -67,6 +72,7 @@ M.PATTERNS = {
 		pattern = 'cask ["]([^%s]*)["]',
 		prefix = "https://formulae.brew.sh/cask/",
 		suffix = "",
+		app = nil,
 		file_patterns = nil,
 		excluded_file_patterns = nil,
 		extra_condition = nil,
@@ -75,6 +81,7 @@ M.PATTERNS = {
 		pattern = "^%s*([%w_]+)%s*=",
 		prefix = "https://crates.io/crates/",
 		suffix = "",
+		app = nil,
 		file_patterns = { "Cargo%.toml" },
 		excluded_file_patterns = nil,
 		extra_condition = function(pattern_found)
@@ -96,6 +103,7 @@ M.PATTERNS = {
 		pattern = "gem ['\"]([^%s]*)['\"]",
 		prefix = "https://rubygems.org/gems/",
 		suffix = "",
+		app = nil,
 		file_patterns = { "Gemfile", "gems.rb" },
 		excluded_file_patterns = nil,
 	},
@@ -105,6 +113,7 @@ M.PATTERNS = {
 		pattern = "^FROM ([^:.]+):",
 		prefix = "https://hub.docker.com/_/",
 		suffix = "/",
+		app = nil,
 		file_patterns = { "Dockerfile%S*", "Containerfile%S*" },
 		excluded_file_patterns = nil,
 		extra_condition = function(matched_pattern) return not matched_pattern:match("/") end,
@@ -115,6 +124,7 @@ M.PATTERNS = {
 		pattern = "FROM ([^:.]+):",
 		prefix = "https://hub.docker.com/r/",
 		suffix = "/",
+		app = nil,
 		file_patterns = { "Dockerfile%S*", "Containerfile%S*" },
 		excluded_file_patterns = nil,
 		extra_condition = function(matched_pattern) return matched_pattern:match("/") end,
